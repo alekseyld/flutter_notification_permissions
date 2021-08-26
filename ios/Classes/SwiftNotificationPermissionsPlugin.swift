@@ -79,15 +79,7 @@ public class SwiftNotificationPermissionsPlugin: NSObject, FlutterPlugin {
 						  return
 					  }
 				  }
-                  if let url = URL(string:UIApplication.openSettingsURLString) {
-                      if UIApplication.shared.canOpenURL(url) {
-                          if #available(iOS 10.0, *) {
-                              UIApplication.shared.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: nil)
-                          } else {
-                              UIApplication.shared.openURL(url)
-                          }
-                      }
-                  }
+                 self.openNotificationSettings()
                   result(nil)
               } else {
                   result(nil)
@@ -97,9 +89,24 @@ public class SwiftNotificationPermissionsPlugin: NSObject, FlutterPlugin {
           getNotificationStatus(completion: { status in
               result(status)
           })
+      } else if (call.method == "openSystemSettings") {
+        openNotificationSettings()
+        result(nil)
       } else {
           result(FlutterMethodNotImplemented)
       }
+  }
+
+  func openNotificationSettings() {
+    if let url = URL(string:UIApplication.openSettingsURLString) {
+        if UIApplication.shared.canOpenURL(url) {
+            if #available(iOS 10.0, *) {
+                UIApplication.shared.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: nil)
+            } else {
+                UIApplication.shared.openURL(url)
+            }
+        }
+    }
   }
 
   func getNotificationStatus(completion: @escaping ((String) -> Void)) {

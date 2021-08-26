@@ -25,6 +25,10 @@ class NotificationPermissions {
     return _getPermissionStatus(status ?? "unknown");
   }
 
+  static Future<void> openSystemSettings() async {
+    await _channel.invokeMethod('openSystemSettings');
+  }
+
   /// Gets the PermissionStatus from the channel Method
   ///
   /// Given a [String] status from the method channel, it returns a
