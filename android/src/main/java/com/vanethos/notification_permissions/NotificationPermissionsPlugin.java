@@ -8,30 +8,52 @@ import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationManagerCompat;
 
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
-public class NotificationPermissionsPlugin implements MethodChannel.MethodCallHandler {
-    public static void registerWith(Registrar registrar) {
-        final MethodChannel channel =
-                new MethodChannel(registrar.messenger(), "notification_permissions");
-        channel.setMethodCallHandler(new NotificationPermissionsPlugin(registrar));
-    }
+public class NotificationPermissionsPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler {
 
     private static final String PERMISSION_GRANTED = "granted";
     private static final String PERMISSION_DENIED = "denied";
 
-    private final Context context;
+    private Context context;
+    private MethodChannel methodChannel;
 
-    private NotificationPermissionsPlugin(Registrar registrar) {
-        this.context = registrar.activity();
+    /** Plugin registration. */
+    @SuppressWarnings("deprecation")
+    public static void registerWith(io.flutter.plugin.common.PluginRegistry.Registrar registrar) {
+        final NotificationPermissionsPlugin instance = new NotificationPermissionsPlugin();
+        instance.onAttachedToEngine(registrar.context(), registrar.messenger());
     }
 
     @Override
-    public void onMethodCall(MethodCall call, MethodChannel.Result result) {
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
+        onAttachedToEngine(binding.getApplicationContext(), binding.getBinaryMessenger());
+    }
+
+    private void onAttachedToEngine(Context applicationContext, BinaryMessenger messenger) {
+        this.context = applicationContext;
+        methodChannel =
+                new MethodChannel(messenger, "notification_permissions");
+        methodChannel.setMethodCallHandler(this);
+    }
+
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        context = null;
+        methodChannel.setMethodCallHandler(null);
+        methodChannel = null;
+    }
+
+    @Override
+    public void onMethodCall(MethodCall call, @NonNull MethodChannel.Result result) {
         if ("getNotificationPermissionStatus".equalsIgnoreCase(call.method)) {
             result.success(getNotificationPermissionStatus());
         } else if ("requestNotificationPermissions".equalsIgnoreCase(call.method)) {
